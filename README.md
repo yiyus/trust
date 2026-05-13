@@ -35,7 +35,7 @@ $$H_{k+1}=H_k + \frac{\Delta g \Delta g^T}{\Delta g^T \Delta p} - \frac{H_k \Del
 
 where $\Delta p$ and $\Delta g$ are the changes in parameters and gradient from step $k$ to step $k+1$, and starting with $H_0 = I$.
 
-If the goal is to minimise residuals instead of a scalar function, the LM algorithm can be applied to minimise a cost function $\rho(y_i(p), c_i)$, where $\rho$ is a loss function which depends on the residuals $y_i(p)$ and arbitrary weight factors $c_i$.
+If the goal is to minimise residuals instead of a scalar function, the LM algorithm can be applied to minimise a cost function $\sum_i \rho(y_i(p), c_i)$, where $\rho$ is a loss function which depends on the residuals $y_i(p)$ and arbitrary weight factors $c_i$.
 
 The Hessian and gradient of the cost function
 
