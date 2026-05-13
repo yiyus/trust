@@ -1,4 +1,4 @@
- Test←{⍝0::⎕EM ⎕SIGNAL ⎕EN
+ Test←{0::⎕EM ⎕SIGNAL ⎕EN
      t←()
     ⍝ Tests ability to navigate sharp, narrow valleys and handle situations where the Jacobian
     ⍝ may lead to a locally rank-deficient J^T J matrix (eg. zero diagonal elements), requiring
