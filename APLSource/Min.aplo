@@ -1,4 +1,4 @@
- LMA←{⍺←⊢ ⋄ p←⊃w←⊆⍵ ⋄ 0::⎕SIGNAL ⎕EN                    ⍝ pass signals
+ Min←{⍺←⊢ ⋄ p←⊃w←⊆⍵ ⋄ ⍝0::⎕SIGNAL ⎕EN                    ⍝ pass signals
 
      n←'d',¨'ini' 'inc' 'dec' 'max' 'min'               ⍝ damping
      n←('icrg',⍨¨⊂'tol'),n                              ⍝ tolerances
@@ -11,10 +11,8 @@
      )
      F←{1((⊂6 0⍕↑),12 ¯5∘⍕¨⍤↓)⍵} ⋄ P←{⎕←F ⍵ ⋄ ⍵}        ⍝ format and print
      D←{⍕'sp',¨':',¨(⊂2 5)⌷F ⍵}                         ⍝ display form
-     J←{⍉↑⍺÷⍨(⍺⍺¨(⊂⍵)+↓↑(-⍳≢⍵)↑¨⍺)-⊆⍺⍺ ⍵}               ⍝ estimate Jacobian
-     E←{⍺←⊢ ⋄ (1<≡e)∧2=≢e←⍺⍺ ⍵:e ⋄ (⊃⊆e)(⍺ ⍺⍺ J ⍵)}     ⍝ evaluate, and estimate J if needed
-     M←(2÷⍨1⊥⊢⌷⍨∘⊂⍋⌷⍨∘⊂∘⌈2÷⍨0 1+≢){1@(0∘=)⍺⍺|⍵-⍺⍺ ⍵}    ⍝ median absolute deviation
-     L←{0=c.⎕NC'sigma':∇ ⍵⊣c.sigma←(M ⍵)÷0.6745         ⍝ loss function (needs stddev estimation)
+     A←(2÷⍨1⊥⊢⌷⍨∘⊂⍋⌷⍨∘⊂∘⌈2÷⍨0 1+≢){1@(0∘=)⍺⍺|⍵-⍺⍺ ⍵}    ⍝ median absolute deviation
+     L←{0=c.⎕NC'sigma':∇ ⍵⊣c.sigma←(A ⍵)÷0.6745         ⍝ loss function (needs stddev estimation)
          3=⎕NC'⍺⍺':c.(sigma×⎕VGET⊂ns 1)⍺⍺ ⍵             ⍝     user defined
          ~(⊂⍺⍺)∊Loss.⎕NL ¯3:⎕SIGNAL 6                   ⍝     if no user defined it must be in Loss
          c.(sigma×⍣(⍺⍺≢'L2')⊢scale)(Loss.⍎⍺⍺)⍵          ⍝     scaled loss function
@@ -27,6 +25,6 @@
      c.scale←c ⎕VGET⊂ns(Loss ⎕VGET ⎕C c.loss)           ⍝ set scale factor for loss function
      _←c ⎕VSET(↑nc)(c ⎕VGET(↑nc)c.(÷dinc dmax))         ⍝ other computed defaults
      CB←⍺{⍺⍺ c.CallBack c ⎕VSET(↑nr)⍵}P⍣(c.verbose≢0)   ⍝ callback function
-     EV←⍺∘c.Eval{y j←⍺ ⍺⍺ E ⍵ ⋄ y j,(c.loss L)y}        ⍝ eval function
-     c⊣c.⎕DF D(c ⎕VGET↑n)(c.pert∘EV)LM CB p c.dnorm     ⍝ return namespace
+     EV←{0=≢⍴⊃⍵:⍵ ⋄ ⍵,c.loss L⊃⍵}c.pert(⍺∘c.Eval Eval)⊢ ⍝ evaluation function
+     c⊣c.⎕DF D(c ⎕VGET↑n)EV M CB p c.dnorm              ⍝ return namespace
  }

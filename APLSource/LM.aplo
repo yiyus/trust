@@ -1,0 +1,4 @@
+ LM←{                                              ⍝ Levenberg-Marquardt
+     y j l w←(⊢,1,⍨2÷⍨1×⍨⍤↑⊢)⍣(2=≢g)⊢g←⍺⍺ Eval ⍵   ⍝ evaluate current solution
+     (+/l)(t+.×j)(y+.×⍨t←w×⍤1⍉j)                   ⍝ cost, parameters, jacobian, residual
+ }

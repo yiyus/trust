@@ -1,0 +1,5 @@
+ M←{                                   ⍝ Minimisation
+     3=≢e←⍺⍺ Eval⊃⍵:⍺ ⍺⍺ Newton ⍵⍵ ⍵   ⍝ Newton
+     0=≢⍴⊃e:⍺ ⍺⍺ BFGS Newton ⍵⍵ ⍵      ⍝ Broyden–Fletcher–Goldfarb–Shanno
+     ⍺ ⍺⍺ LM Newton ⍵⍵ ⍵               ⍝ Levenberg-Marquardt
+ }

@@ -1,0 +1,8 @@
+ BFGS←{                                   ⍝ Broyden–Fletcher–Goldfarb–Shanno
+     y g←⍺⍺ Eval ⍵                        ⍝ evaluate current solution
+     0=⎕NC'⍺':y(∘.=⍨⍳≢⍵)g                 ⍝ first iteration: identity matrix
+     ∆p _ b ∆g←⍺ ⋄ ∆p ∆g-⍨←⍵ g            ⍝ hessian matrix and increments
+     ⎕CT≥∆←∆g+.×∆p: y b g                 ⍝ skip unsafe updates
+     b+←(∆÷⍨∘.×⍨∆g)-(∘.×⍨÷∆p+.×⊢)b+.×∆p   ⍝ update hessian matrix
+     y b g                                ⍝ cost, parameters, hessian, gradient
+ }

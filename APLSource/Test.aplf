@@ -1,4 +1,4 @@
- Test←{0::⎕EM ⎕SIGNAL ⎕EN
+ Test←{⍝0::⎕EM ⎕SIGNAL ⎕EN
      t←()
     ⍝ Tests ability to navigate sharp, narrow valleys and handle situations where the Jacobian
     ⍝ may lead to a locally rank-deficient J^T J matrix (eg. zero diagonal elements), requiring
@@ -7,12 +7,12 @@
          B←{
              x y←⍵ ⋄ (1.5 2.25 2.625-x×1-y*⍳3)[(¯1+y)x ⋄ (¯1+y*2)(2×x×y) ⋄ (¯1+y*3)(3×x×y*2)]
          }
-         r←3 0.5 CMP(R B #.LMA 1 0.8).p                                ⍝ easy
-         r,←3 0.5 CMP(R B #.LMA 1 1).p                                 ⍝ singular Jt J
-         r,←3 0.5 CMP(R B #.LMA 0 0).p                                 ⍝ another tricky point
-         r,←3 0.5 CMP(R B #.LMA 1 ¯2).p                                ⍝ different quadrant
-         r,←(B #.LMA(2 2)(toli:1)).cost>(R B #.LMA 2 2).cost           ⍝ closer to another local minimum
-         r,←(B #.LMA(¯1 1)(toli:1)).cost>(R B #.LMA ¯1 1).cost         ⍝ closer to another local minimum
+         r←3 0.5 CMP(R B #.Min 1 0.8).p                                ⍝ easy
+         r,←3 0.5 CMP(R B #.Min 1 1).p                                 ⍝ singular Jt J
+         r,←3 0.5 CMP(R B #.Min 0 0).p                                 ⍝ another tricky point
+         r,←3 0.5 CMP(R B #.Min 1 ¯2).p                                ⍝ different quadrant
+         r,←(B #.Min(2 2)(toli:1)).cost>(R B #.Min 2 2).cost           ⍝ closer to another local minimum
+         r,←(B #.Min(¯1 1)(toli:1)).cost>(R B #.Min ¯1 1).cost         ⍝ closer to another local minimum
          r
      }
     ⍝ numerical approximation of the Jacobian
@@ -20,12 +20,20 @@
          B←{
              x y←⍵ ⋄ (1.5 2.25 2.625-x×1-y*⍳3)
          }
-         r←3 0.5 CMP(R B #.LMA 1 0.8).p                                ⍝ easy
-         r,←3 0.5 CMP(R B #.LMA 1 1).p                                 ⍝ singular Jt J
-         r,←3 0.5 CMP(R B #.LMA 0 0).p                                 ⍝ another tricky point
-         r,←3 0.5 CMP(R B #.LMA 1 ¯2).p                                ⍝ different quadrant
-         r,←(B #.LMA(2 2)(toli:1)).cost>(R B #.LMA 2 2).cost           ⍝ closer to another local minimum
-         r,←(B #.LMA(¯1 1)(toli:1)).cost>(R B #.LMA ¯1 1).cost         ⍝ closer to another local minimum
+         r←3 0.5 CMP(R B #.Min 1 0.8).p                                ⍝ easy
+         r,←3 0.5 CMP(R B #.Min 1 1).p                                 ⍝ singular Jt J
+         r,←3 0.5 CMP(R B #.Min 0 0).p                                 ⍝ another tricky point
+         r,←3 0.5 CMP(R B #.Min 1 ¯2).p                                ⍝ different quadrant
+         r,←(B #.Min(2 2)(toli:1)).cost>(R B #.Min 2 2).cost           ⍝ closer to another local minimum
+         r,←(B #.Min(¯1 1)(toli:1)).cost>(R B #.Min ¯1 1).cost         ⍝ closer to another local minimum
+         r
+     }
+    ⍝ Beale via BFGS engine (scalar objective only; gradient by finite differences)
+     t.BealeBFGS←{
+         B←{x y←⍵ ⋄ +/×⍨1.5 2.25 2.625-x×1-y*⍳3}                       ⍝ scalar sum of squared residuals
+         r←3 0.5 CLW(R B #.Min 1 0.8).p                                ⍝ easy
+         r,←3 0.5 CLW(R B #.Min 0 0).p                                 ⍝ tricky point
+         r,←3 0.5 CLW(R B #.Min 1 ¯2).p                                ⍝ different quadrant
          r
      }
     ⍝ Jacobian and fitting problem with outliers to test loss functions and bare LM
@@ -33,29 +41,30 @@
      ExpDecEv←{x y←⍺ ⋄ A k C←⍵ ⋄ xe←A×x×e←*-k×x ⋄ (y-⍵ ExpDec x)(⍉(-e)⍪xe⍪⍉⍪-=⍨e)}
      y←100×@(?≢x)⊢0.1{⍵+⍺×0.5-⍨?0⍴⍨≢⍵}y0←(p←10 0.5 1)ExpDec⊢x←(⍳100)-1
      t.ExpDecFit←{p x y y0←#.(p x y y0) ⋄ CMP←{0.1>|⍺-⍵}
-         r←p CMP(R x y0∘#.ExpDecEv #.LMA(10 0.5 1)(loss:'L2')).p                    ⍝ exact
-         r,←p CMP(R x y0∘#.ExpDecEv #.LMA(10 0.5 1)(loss:'L2' ⋄ scale:?(≢x)⍴0)).p   ⍝ exact (wls)
-         r,←p CMP(R x y0∘#.ExpDecEv #.LMA(10 0.5 1)(loss:'Huber')).p                ⍝ exact
-         r,←p CMP(R x y∘#.ExpDecEv #.LMA(5 0.1 0.5)(loss:'Cauchy')).p
-         r,←p CMP(R x y∘#.ExpDecEv #.LMA(5 0.1 0.5)(loss:'SoftL1')).p
-         r,←p CMP(R x y0∘#.ExpDecEv #.LMA(5 0.1 0.5)(loss:'Tukey' ⋄ scale:0.1)).p   ⍝ exact with scaling
-         r,←p CMP(R x y∘#.ExpDecEv #.LMA(5 0.1 0.5)(loss:'Welsh')).p
-         r,←p CMP(R x y∘#.ExpDecEv #.LMA(5 0.1 0.5)(loss:'Fair')).p
-         r,←p CMP(R x y∘#.ExpDecEv #.LMA(5 0.1 0.5)(loss:'Arctan')).p
+         r←p CMP(R x y0∘#.ExpDecEv #.Min(10 0.5 1)(loss:'L2')).p                    ⍝ exact
+         r,←p CMP(R x y0∘#.ExpDecEv #.Min(10 0.5 1)(loss:'L2' ⋄ scale:?(≢x)⍴0)).p   ⍝ exact (wls)
+         r,←p CMP(R x y0∘#.ExpDecEv #.Min(10 0.5 1)(loss:'Huber')).p                ⍝ exact
+         r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Cauchy')).p
+         r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'SoftL1')).p
+         r,←p CMP(R x y0∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Tukey' ⋄ scale:0.1)).p   ⍝ exact with scaling
+         r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Welsh')).p
+         r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Fair')).p
+         r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Arctan')).p
          r
      }
      t.ExpDecJac←{p x y←#.(p x y0) ⋄ tol←1E¯10
          R←{⎕←(16↑''),12 ¯5⍕⍵ ⋄ tol>⍵}
-         r←R+.×⍨,((y-#.ExpDec∘x)#.Jacobian p)-⊃⌽x y #.ExpDecEv p
-         r,←R+.×⍨,(1E¯9(y-#.ExpDec∘x)#.Jacobian p)-⊃⌽x y #.ExpDecEv p
+         r←R+.×⍨,(⊃∘⌽(y-#.ExpDec∘x)#.Eval p)-⊃⌽x y #.ExpDecEv p
+         r,←R+.×⍨,(⊃∘⌽1E¯9(y-#.ExpDec∘x)#.Eval p)-⊃⌽x y #.ExpDecEv p
          r
      }
      t.ExpDecLM←{p x y←#.(p x y0)
          R←{⎕←(10↑''),((6 0⍕⊃),(12 ¯5⍕2∘⊃),4∘↓)⍵ ⋄ ⍵}
-         cfg←1000 ⎕CT ⎕CT 0.01 0.01 5(÷5)(÷⎕CT)⎕CT                        ⍝ ti tc tr tg d0 di dd dx dn
-         r←p CMP⊃⌽R cfg(y-#.ExpDec∘x)#.LM⊢(5 0.1 0.5)1                    ⍝ only residuals
-         r,←p CMP⊃⌽R cfg(x y∘#.ExpDecEv)#.LM⊢(5 0.1 0.5)1                 ⍝ residual and jacobian
-         r,←p CMP⊃⌽R cfg((1,⍨⊢,(×⍨1∘↑))x y∘#.ExpDecEv)#.LM⊢(5 0.1 0.5)1   ⍝ everything
+         cfg←1000 ⎕CT ⎕CT 0.01 0.01 5(÷5)(÷⎕CT)⎕CT                     ⍝ ti tc tr tg d0 di dd dx dn
+         Y←y-#.ExpDec∘x ⋄ YJ←x y∘#.ExpDecEv ⋄ YJLW←(1,⍨⊢,(×⍨1∘↑))YJ    ⍝ eval functions
+         r←p CMP⊃⌽R cfg Y #.LM #.Newton⊢(5 0.1 0.5)1                   ⍝ only residuals
+         r,←p CMP⊃⌽R cfg YJ #.LM #.Newton⊢(5 0.1 0.5)1                 ⍝ residual and jacobian
+         r,←p CMP⊃⌽R cfg YJLW #.LM #.Newton⊢(5 0.1 0.5)1               ⍝ everything
          r
      }
     ⍝ Assesses capability to follow a long, narrow, curving multi-dimensional valley, testing
@@ -66,24 +75,33 @@
              a b c←⍵ ⋄ m←a M b ⋄ y←(10×c-10×a T b)(10×m-1)c
              y[((50×b)÷○+.×⍨a b)(-(50×a)÷○+.×⍨a b)10 ⋄ (10×a÷m)(10×b÷m)0 ⋄ 0 0 1]
          }
-         r←1 0 0 CMP(R H #.LMA ¯1 0 0).p                               ⍝ standard starting point
-         r,←1 0 0 CMP(R H #.LMA ¯1.2 0.1 0.1).p                        ⍝ slightly perturbed
-         r,←1 0 0 CMP(R H #.LMA ¯0.9 ¯0.05 ¯0.05).p                    ⍝ in other direction
-         r,←1 0 0 CMP(R H #.LMA 0.5 ¯0.5 0.5).p                        ⍝ qualitatively different
-         r,←1 0 0 CMP(R H #.LMA ¯0.5 0.5 ¯0.5).p                       ⍝ another one
-         r,←1 0 0 CMP(R H #.LMA ¯1 0 10).p                             ⍝ far off in 3rd dimension
-         r,←1 0 0 CMP(R H #.LMA ¯1 0 ¯10).p                            ⍝ far off in 3rd dimension
-         r,←1 0 0 CMP(R H #.LMA 3 4 5).p                               ⍝ away in all components
+         r←1 0 0 CMP(R H #.Min ¯1 0 0).p                               ⍝ standard starting point
+         r,←1 0 0 CMP(R H #.Min ¯1.2 0.1 0.1).p                        ⍝ slightly perturbed
+         r,←1 0 0 CMP(R H #.Min ¯0.9 ¯0.05 ¯0.05).p                    ⍝ in other direction
+         r,←1 0 0 CMP(R H #.Min 0.5 ¯0.5 0.5).p                        ⍝ qualitatively different
+         r,←1 0 0 CMP(R H #.Min ¯0.5 0.5 ¯0.5).p                       ⍝ another one
+         r,←1 0 0 CMP(R H #.Min ¯1 0 10).p                             ⍝ far off in 3rd dimension
+         r,←1 0 0 CMP(R H #.Min ¯1 0 ¯10).p                            ⍝ far off in 3rd dimension
+         r,←1 0 0 CMP(R H #.Min 3 4 5).p                               ⍝ away in all components
+         r
+     }
+    ⍝ Helical valley via BFGS engine (scalar objective only)
+     t.HelicalBFGS←{
+         T←{1|1+(12○⍺+0J1×⍵)÷○2} ⋄ M←{|⍺+0J1×⍵}
+         H←{a b c←⍵ ⋄ +/×⍨(10×c-10×a T b)(10×m-1)c⊣m←a M b}            ⍝ scalar form
+         r←1 0 0 CLW(R H #.Min ¯1 0 0).p                               ⍝ standard starting point
+         r,←1 0 0 CLW(R H #.Min ¯1.2 0.1 0.1).p                        ⍝ slightly perturbed
+         r,←1 0 0 CLW(R H #.Min ¯0.5 0.5 ¯0.5).p                       ⍝ qualitatively different
          r
      }
     ⍝ Verifies efficiency and correctness for a linear system. Converge should be very fast
     ⍝ (1 or 2 iterations) with minimal damping, demonstrating Gauss-Newton like behavior
      t.Linear←{
-         y←(A←?100 10⍴0)+.×x←⍳10 ⋄ s←R{(y-⍨A+.×⍵)A}#.LMA(?10⍴0)0 ⋄ (1=s.iter),(⍳10)CMP s.p
+         y←(A←?100 10⍴0)+.×x←⍳10 ⋄ s←R{(y-⍨A+.×⍵)A}#.Min(?10⍴0)0 ⋄ (1=s.iter),(⍳10)CMP s.p
      }
     ⍝ numerical approximation of the Jacobian
      t.LinearNum←{
-         y←(A←?100 5⍴0)+.×x←⍳5 ⋄ s←R{y-⍨A+.×⍵}#.LMA(?5⍴0)0 ⋄ (⍳5)CMP s.p
+         y←(A←?100 5⍴0)+.×x←⍳5 ⋄ s←R{y-⍨A+.×⍵}#.Min(?5⍴0)0 ⋄ (⍳5)CMP s.p
      }
     ⍝ Evaluates LMA's robustness and ability to converge to a solution when the Jacobian
     ⍝ becomes singular (rank-deficient) at or near the optimum
@@ -92,9 +110,18 @@
              a b c d←⍵ ⋄ r5 r10←5 10*÷2 ⋄ y←(a+10×b)(r5×c-d)(×⍨b-2×c)(r10××⍨a-d)
              y[1 10 0 0 ⋄ 0 0 r5(-r5) ⋄ 0(2×b-2×c)(-2×b-2×c)0 ⋄ (2×r10×a-d)0 0(-2×r10×a-d)]
          }
-         r←(4⍴0)CMP(R P #.LMA(3 ¯1 0 1)(tolc:1E¯30)).p                 ⍝ standard starting point
-         r,←(4⍴0)CMP(R P #.LMA(0 0 0 0)(tolc:1E¯30)).p                 ⍝ solution (convergence at zero step)
-         r,←(4⍴0)CMP(R P #.LMA(1 1 1 1)(tolc:1E¯30)).p                 ⍝ far from solution
+         r←(4⍴0)CMP(R P #.Min(3 ¯1 0 1)(tolc:1E¯30)).p                 ⍝ standard starting point
+         r,←(4⍴0)CMP(R P #.Min(0 0 0 0)(tolc:1E¯30)).p                 ⍝ solution (convergence at zero step)
+         r,←(4⍴0)CMP(R P #.Min(1 1 1 1)(tolc:1E¯30)).p                 ⍝ far from solution
+         r
+     }
+    ⍝ Powell via BFGS engine. The Hessian is singular at the optimum, so this is a hard
+    ⍝ problem for any quasi-Newton method: BFGS won't reach full machine precision but
+    ⍝ should reduce the cost substantially and approach the optimum (0,0,0,0).
+     t.PowellBFGS←{
+         P←{a b c d←⍵ ⋄ (×⍨a+10×b)+(5××⍨c-d)+(×⍨×⍨b-2×c)+10××⍨×⍨a-d}   ⍝ scalar form
+         r←0.01>(R P #.Min(3 ¯1 0 1)(toli:2000)).cost                  ⍝ cost reduces by >>1 from start
+         r,←0.01>(R P #.Min(1 1 1 1)(toli:2000)).cost                  ⍝ from a different start
          r
      }
     ⍝ Tests LMA's performance in minimizing a classic non-linear function characterized by
@@ -102,31 +129,102 @@
     ⍝ direction and step size
      Rosenbrock←{p q←⍵ ⋄ ((10×q-×⍨p),1-p)[(-20×p)10 ⋄ ¯1 0]}
      t.Rosenbrock←{
-         r←1 1 CMP(R #.Rosenbrock #.LMA 1.5 1.5).p                     ⍝ close to the solution
-         r,←1 1 CMP(R #.Rosenbrock #.LMA 2 1).p                        ⍝ not so close
-         r,←1 1 CMP(R #.Rosenbrock #.LMA 0 0).p                        ⍝ outside of parabollic valley
-         r,←1 1 CMP(R #.Rosenbrock #.LMA ¯1.2 1).p                     ⍝ further
-         r,←1 1 CMP(R #.Rosenbrock #.LMA ¯2 ¯2).p                      ⍝ far and wrongly pointed gradient
-         r,←1 1 CMP(R #.Rosenbrock #.LMA 2 2).p                        ⍝ far and wrongly pointed gradient
+         r←1 1 CMP(R #.Rosenbrock #.Min 1.5 1.5).p                     ⍝ close to the solution
+         r,←1 1 CMP(R #.Rosenbrock #.Min 2 1).p                        ⍝ not so close
+         r,←1 1 CMP(R #.Rosenbrock #.Min 0 0).p                        ⍝ outside of parabollic valley
+         r,←1 1 CMP(R #.Rosenbrock #.Min ¯1.2 1).p                     ⍝ further
+         r,←1 1 CMP(R #.Rosenbrock #.Min ¯2 ¯2).p                      ⍝ far and wrongly pointed gradient
+         r,←1 1 CMP(R #.Rosenbrock #.Min 2 2).p                        ⍝ far and wrongly pointed gradient
          r
      }
     ⍝ numerical approximation of the Jacobian
      t.RosenbrockNum←{
-         r←1 1 CMP(R⊃⍤#.Rosenbrock #.LMA 1.5 1.5).p                    ⍝ close to the solution
-         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.LMA 2 1).p                       ⍝ not so close
-         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.LMA 0 0).p                       ⍝ outside of parabollic valley
-         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.LMA ¯1.2 1).p                    ⍝ further
-         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.LMA ¯2 ¯2).p                     ⍝ far and wrongly pointed gradient
-         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.LMA 2 2).p                       ⍝ far and wrongly pointed gradient
+         r←1 1 CMP(R⊃⍤#.Rosenbrock #.Min 1.5 1.5).p                    ⍝ close to the solution
+         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.Min 2 1).p                       ⍝ not so close
+         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.Min 0 0).p                       ⍝ outside of parabollic valley
+         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.Min ¯1.2 1).p                    ⍝ further
+         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.Min ¯2 ¯2).p                     ⍝ far and wrongly pointed gradient
+         r,←1 1 CMP(R⊃⍤#.Rosenbrock #.Min 2 2).p                       ⍝ far and wrongly pointed gradient
+         r
+     }
+    ⍝ BFGS engine through the Min interface
+     t.RosenbrockBFGS←{
+         B←+.×⍨⍤⊃#.Rosenbrock                                          ⍝ scalar form
+         r←1 1 CLW(R B #.Min 1.5 1.5).p                                ⍝ close to the solution
+         r,←1 1 CLW(R B #.Min 2 1).p                                   ⍝ not so close
+         r,←1 1 CLW(R B #.Min 0 0).p                                   ⍝ outside of parabolic valley
+         r,←1 1 CLW(R B #.Min ¯1.2 1).p                                ⍝ further
+         r,←1 1 CLW(R B #.Min ¯2 ¯2).p                                 ⍝ far and wrongly pointed gradient
+         r,←1 1 CLW(R B #.Min 2 2).p                                   ⍝ far and wrongly pointed gradient
+         r
+     }
+    ⍝ Low level BFGS method using Newton
+     Rosenbrock2←+.×⍨⍤⊃#.Rosenbrock
+     t.RosenbrockBFGSLow←{
+         R←{⎕←(10↑''),((6 0⍕⊃),(12 ¯5⍕2∘⊃),4∘↓)⍵ ⋄ ⍵}
+         cfg←1000 ⎕CT ⎕CT 0.01 0.01 5(÷5)(÷⎕CT)⎕CT                     ⍝ ti tc tr tg d0 di dd dx dn
+         r←1 1 CLW⊃⌽R cfg(#.Rosenbrock2)#.BFGS #.Newton⊢(1.5 1.5)1     ⍝ close to the solution
+         r,←1 1 CLW⊃⌽R cfg(#.Rosenbrock2)#.BFGS #.Newton⊢(2 1)1        ⍝ not so close
+         r,←1 1 CLW⊃⌽R cfg(#.Rosenbrock2)#.BFGS #.Newton⊢(0 0)1        ⍝ outside of parabollic valley
+         r,←1 1 CLW⊃⌽R cfg(#.Rosenbrock2)#.BFGS #.Newton⊢(¯1.2 1)1     ⍝ further
+         r,←1 1 CLW⊃⌽R cfg(#.Rosenbrock2)#.BFGS #.Newton⊢(¯2 ¯2)1      ⍝ far and wrongly pointed gradient
+         r,←1 1 CLW⊃⌽R cfg(#.Rosenbrock2)#.BFGS #.Newton⊢(2 2)1        ⍝ far and wrongly pointed gradient
+         r
+     }
+    ⍝ Newton engine via Min, with analytic gradient and Hessian for Rosenbrock
+     Rosenbrock3←{
+         x y←⍵ ⋄ d←y-×⍨x ⋄ f←(100××⍨d)+×⍨1-x
+         h←2 2⍴((1200××⍨x)+2-400×y)(¯400×x)(¯400×x)200
+         g←((¯400×x×d)-2×1-x)(200×d)
+         f h g
+     }
+     t.RosenbrockNewton←{
+         r←1 1 CMP(R #.Rosenbrock3 #.Min 1.5 1.5).p                    ⍝ close to the solution
+         r,←1 1 CMP(R #.Rosenbrock3 #.Min 2 1).p                       ⍝ not so close
+         r,←1 1 CMP(R #.Rosenbrock3 #.Min 0 0).p                       ⍝ outside of parabolic valley
+         r,←1 1 CMP(R #.Rosenbrock3 #.Min ¯1.2 1).p                    ⍝ further
+         r,←1 1 CMP(R #.Rosenbrock3 #.Min ¯2 ¯2).p                     ⍝ far and wrongly pointed gradient
+         r,←1 1 CMP(R #.Rosenbrock3 #.Min 2 2).p                       ⍝ far and wrongly pointed gradient
+         r
+     }
+    ⍝ Newton via the low-level Newton operator
+     t.RosenbrockNewtonLow←{
+         R←{⎕←(10↑''),((6 0⍕⊃),(12 ¯5⍕2∘⊃),4∘↓)⍵ ⋄ ⍵}
+         cfg←1000 ⎕CT ⎕CT 0.01 0.01 5(÷5)(÷⎕CT)⎕CT                     ⍝ ti tc tr tg d0 di dd dx dn
+         r←1 1 CMP⊃⌽R cfg #.Rosenbrock3 #.Newton⊢(1.5 1.5)1            ⍝ close to the solution
+         r,←1 1 CMP⊃⌽R cfg #.Rosenbrock3 #.Newton⊢(0 0)1               ⍝ outside of parabolic valley
+         r,←1 1 CMP⊃⌽R cfg #.Rosenbrock3 #.Newton⊢(¯1.2 1)1            ⍝ further
+         r,←1 1 CMP⊃⌽R cfg #.Rosenbrock3 #.Newton⊢(¯2 ¯2)1             ⍝ far and wrongly pointed gradient
+         r
+     }
+    ⍝ Strictly convex quadratic function. With a well-scaled problem,
+    ⍝ Newton should converge in few iterations
+     Quadratic←{d←⍵-p←1 2 3 ⋄ D←3 3⍴∊4↑¨p ⋄ (D+.×d)D}
+     Quadratic3←{d←⍵-p←1 2 3 ⋄ D←3 3⍴∊4↑¨p ⋄ (+.×⍨2÷⍨D+.×d)(+.×⍨D)(D+.×⍣2⊢d)}
+     t.Quadratic←{
+         r←1 2 3 CMP(R #.Quadratic #.Min 0 0 0).p                      ⍝ LM essentially exact
+         r,←(3≥n.iter)∧(1 2 3 CMP(n←R #.Quadratic3 #.Min 0 0 0).p)     ⍝ Newton essentially exact
+         r,←1 2 3 CMP⍥(1e¯2∘×)(R(+.×⍨2÷⍨∘⊃#.Quadratic)#.Min 0 0 0).p   ⍝ BFGS: looser tolerance
+         r
+     }
+    ⍝ Verify that all three engines converge to the same minimum on a problem
+    ⍝ where all three apply.
+     t.Dispatch←{
+         r←1 1 CLW(R #.Rosenbrock #.Min 0 0).p                         ⍝ LM converged
+         r,←1 1 CLW(R #.Rosenbrock2 #.Min 0 0).p                       ⍝ BFGS converged
+         r,←1 1 CLW(R #.Rosenbrock3 #.Min 0 0).p                       ⍝ Newton converged
          r
      }
     ⍝ Check that algorithm finishes on termination conditions
      t.Terminate←{
-         r←(R #.Rosenbrock #.LMA(0 0)(toli:10)).(iter>toli)                      ⍝ number of iterations
-         r,←(R #.Rosenbrock #.LMA(0 0)(tolc:0)).(rel<tolr)                       ⍝ relative change
-         r,←(R #.Rosenbrock #.LMA(0 0)(tolc:0 ⋄ dmax:1000000)).((dnorm>1000000)∧rel=0)   ⍝ maximum damping
+         r←(R #.Rosenbrock #.Min(0 0)(toli:10)).(iter>toli)            ⍝ number of iterations
+         r,←(R #.Rosenbrock #.Min(0 0)(tolc:0)).(rel<tolr)             ⍝ relative change
+         r,←(R #.Rosenbrock #.Min(0 0)(dmax:0.5)).(dnorm>dmax)         ⍝ maximum damping
          r
      }
-     ⍺←0.000001 ⋄ tol←⍺ ⋄ CMP←{tol>|⍺-⍵} ⋄ R←{⎕←(10↑''),⍵.((6 0⍕iter),(12 ¯5⍕cost),p) ⋄ ⍵}
-     (t ⎕NS'tol' 'CMP' 'R'){⎕←⍵ ⋄ 0∊⍺⍎⍵,'⍬':('TEST FAILED: ',⍵)⎕SIGNAL 8 ⋄ _←0}¨(↓t.⎕NL 3)⊣⍣(⍵≡'*')⊆⍵
+     ⍺←0.000001 ⋄ tol←⍺ ⋄ CMP←{tol>|⍺-⍵} ⋄ CLW←{tol>×⍨⍺-⍵}             ⍝ comparison and lower prec comparison
+     R←{⎕←(10↑''),⍵.((6 0⍕iter),(12 ¯5⍕cost),p) ⋄ ⍵}                   ⍝ report
+     TRY←{⎕←⍵ ⋄ 0∊⍺⍎⍵,'⍬':('TEST FAILED: ',⍵)⎕SIGNAL 8 ⋄ _←0}          ⍝ execute test and check result
+     (t ⎕NS'tol' 'CMP' 'CLW' 'R')TRY¨(↓t.⎕NL 3)⊣⍣(⍵≡'*')⊆⍵             ⍝ ⍵ selects tests ('*' for all)
  }
+ 

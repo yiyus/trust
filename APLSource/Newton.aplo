@@ -1,24 +1,21 @@
- LM←{ti tc tr tg d0 di dd dx dn←⍺ ⋄ p d←⍵               ⍝ Levenberg–Marquardt algorithm
+ Newton←{ti tc tr tg d0 di dd dx dn←⍺ ⋄ p d←⍵           ⍝ universal trust-region newton solver
 
-     D←((dx-d0)×dn-⍨⊢)÷(d0-dn)×dx-⊢ ⋄ L←{⍵,(×⍨⊃⍵)2÷2}   ⍝ damping factor normalization(λ) and standard loss(y)
-     J←{(1<|≡g)∧1<≢g←⍺⍺ ⍵:g ⋄ (⊃⊆g)(⍺⍺ Jacobian ⍵)}     ⍝ residual and (estimated if not given) jacobian(p)
-     E←⍺⍺{y j l w←L⍣(2=≢g)⊢g←⍺⍺ J ⍵ ⋄ (+/l)⍵ y j w}     ⍝ eval(p): cost, parameters, residual, jacobian
-     A←{c p y j w←⍵ ⋄ c p(t+.×j)(y+.×⍨t←w×⍤1⍉j)}        ⍝ accept(EG output): sum(error²), parameters, JtJ, Jty
+     D←((dx-d0)×dn-⍨⊢)÷(d0-dn)×dx-⊢                     ⍝ damping factor normalization (λ)
 
-     T←{                                                ⍝ try guess(λ)
-         r⊢←0 ⋄ 11::dx⌊⍵×di ⋄ b←1-÷1⌈d⊢←D ⍵             ⍝     bad guess if domain error
-         ∆p←jy⌹jj+⍺×⍤1⊢⍵×dj←(⎕CT+b-⎕CT×b)⌈1 1⍉jj        ⍝     change of parameters with adaptive floor
-         c0←2÷⍨∆p+.×jy+∆p×⍵×dj                          ⍝     predicted error decrement
-         c1←c-⊃g←E⊢q←p-∆p                               ⍝     actual error decrement
-         r⊢←(p(-÷⍥(+.×⍨)⊣)q)⌊|c1÷c                      ⍝     relative change in parameters or residuals
-         (⎕CT>c0)∧⎕CT<c1:dx⌊⍵×di                        ⍝     if no changing, increase damping
-         (⎕CT≤c0)∧tg≥c1÷c0:dx⌊⍵×di                      ⍝     if diverging, increase damping
-         dn⌈⍵×dd⊣c p jj jy⊢←A g                         ⍝     accept change, decrease damping
+     T←⍺⍺{                                              ⍝ try guess(λ)
+         r⊢←0 ⋄ 11::dx⌊⍵×di ⋄ b←1-÷1⌈d⊢←D ⍵             ⍝   bad guess if domain error
+         ∆p←g⌹m+⍺×⍤1⊢⍵×dm←(⎕CT+b-⎕CT×b)⌈1 1⍉m           ⍝   solve (M + λD)∆p = g
+         c0←2÷⍨∆p+.×g+∆p×⍵×dm                           ⍝   predicted error decrement
+         c1←c-⊃n←p c m g ⍺⍺⊢q←p-∆p                      ⍝   actual error decrement⌈
+         r⊢←(p(-÷∘(⎕CT∘⌈)⍥(+.×⍨)⊣)q)⌊|c1÷c              ⍝   relative change metric
+         (⎕CT>c0)∧⎕CT<c1:dx⌊⍵×di                        ⍝   if not changing, increase damping
+         (⎕CT≤c0)∧tg≥c1÷c0:dx⌊⍵×di                      ⍝   if diverging, increase damping
+         dn⌈⍵×dd⊣p(c m g)⊢←q n                          ⍝   accept state, decrease damping
      }
      C←⍵⍵{                                              ⍝ convergence check(λ_prev, λ)
-         _←⍺⍺(i⊢←i+1)c r d p                            ⍝     call user function
-         (ti<i)∨(dx∧.=⍺ ⍵)∨(tc>c)∨(r>0)∧tr>r            ⍝     iterations, max damping, residual, not changing
+         _←⍺⍺(i⊢←i+1)c r d p                            ⍝   call callback
+         (ti<i)∨(dx∧.=⍺ ⍵)∨(tc>c)∨(r>0)∧tr>r            ⍝   check termination criteria
      }
-     i r←0 ⋄ 0≥ti⊣⍵⍵ g←i c r d p⊣c p jj jy←A E p:g      ⍝ init
-     i c r d p⊣(∘.=⍨⍳≢p)T⍣C{11::dx ⋄ D⍣¯1⊢⍵}d           ⍝ iterations, cost, change, norm damping, parameters
+     i r←0 ⋄ 0≥ti⊣⍵⍵ s←i c r d p⊣c m g←⍺⍺ p:s           ⍝ init state
+     i c r d p⊣(∘.=⍨⍳≢p)T⍣C{11::dx ⋄ D⍣¯1⊢⍵}d           ⍝ main iteration loop
  }

@@ -1,3 +1,4 @@
- Jacobian←{⍺←⎕CT*÷2 ⋄ a←⍺×1@(0∘=)|⍵                     ⍝ Jacobian matrix of ⍺⍺ at ⍵ applying perturbation ⍺
-     ⍉↑⍺÷⍨(⍺⍺¨(⊂⍵)+↓↑(-⍳≢⍵)↑¨⍺)-⊆⍺⍺ ⍵                   ⍝     finite-differences method
+ Eval←{                                    ⍝ Get result and Jacobian matrix of ⍺⍺ at ⍵
+    (1<|≡g)∧1<≢g←⍺⍺ ⍵:g ⋄ ⍺←⎕CT*÷2         ⍝     pass jacobian if given, else ⍺ is perturbation
+    (⊃⊆g)(⍉↑⍺÷⍨(⍺⍺¨(⊂⍵)+↓↑(-⍳≢⍵)↑¨⍺)-⊆g)   ⍝     finite-differences method
  }
