@@ -4,9 +4,9 @@
 
      T←⍺⍺{                                              ⍝ try guess(λ)
          r⊢←0 ⋄ 11::dx⌊⍵×di ⋄ b←1-÷1⌈d⊢←D ⍵             ⍝   bad guess if domain error
-         ∆p←g⌹m+⍺×⍤1⊢⍵×dm←(⎕CT+b-⎕CT×b)⌈1 1⍉m           ⍝   solve (M + λD)∆p = g
-         c0←2÷⍨∆p+.×g+∆p×⍵×dm                           ⍝   predicted error decrement
-         c1←c-⊃n←p c m g ⍺⍺⊢q←p-∆p                      ⍝   actual error decrement⌈
+         ∆p←-g⌹m+⍺×⍤1⊢⍵×dm←(⎕CT+b-⎕CT×b)⌈1 1⍉m          ⍝   solve (M + λD)∆p = g
+         c0←-2÷⍨∆p+.×g-∆p×⍵×dm                          ⍝   predicted error decrement
+         c1←c-⊃n←p c m g ⍺⍺⊢q←p+∆p                      ⍝   actual error decrement⌈
          r⊢←(p(-÷∘(⎕CT∘⌈)⍥(+.×⍨)⊣)q)⌊|c1÷c              ⍝   relative change metric
          (⎕CT>c0)∧⎕CT<c1:dx⌊⍵×di                        ⍝   if not changing, increase damping
          (⎕CT≤c0)∧tg≥c1÷c0:dx⌊⍵×di                      ⍝   if diverging, increase damping

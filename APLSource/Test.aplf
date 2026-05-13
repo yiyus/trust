@@ -47,7 +47,7 @@
          r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Cauchy')).p
          r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'SoftL1')).p
          r,←p CMP(R x y0∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Tukey' ⋄ scale:0.1)).p   ⍝ exact with scaling
-         r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Welsh')).p
+         r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Welsch')).p
          r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Fair')).p
          r,←p CMP(R x y∘#.ExpDecEv #.Min(5 0.1 0.5)(loss:'Arctan')).p
          r

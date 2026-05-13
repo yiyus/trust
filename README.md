@@ -8,13 +8,13 @@ The package is intended to be robust and offer maximum flexibility, while at the
 
 The goal of the Newton method is to find the set of *solution parameters* $p$ which minimises an objective (or cost) function $f(p)$. Each iteration solves the damped linear system
 
-$$(H + \lambda D)\Delta p = g$$
+$$(H + \lambda D)\Delta p = -g$$
 
 for a step $\Delta p$, where $g$ is the gradient of $f$ at $p$, $H$ is the (positive-semidefinite) Hessian, $\lambda$ is a damping factor and $D$ is a diagonal scaling matrix with $D_{kk} = \max(\epsilon(\lambda), H_{kk})$ and $\epsilon(\lambda)$ an adaptive damping floor. The damping factor $\lambda$ interpolates between the aggressive Newton-like step (small $\lambda$) and a small gradient-descent step (large $\lambda$), defining an implicit trust region.
 
-For the new guess $p - \Delta p$, the predicted error reduction is
+For the new guess $p + \Delta p$, the predicted error reduction is
 
-$$\Delta s_p = \tfrac{1}{2}(\Delta p^T g + \lambda \Delta p^T D \Delta p)$$
+$$\Delta s_p = -\tfrac{1}{2}(\Delta p^T g - \lambda \Delta p^T D \Delta p)$$
 
 If the ratio of the actual error reduction obtained at the next iteration with respect to this prediction is above a configurable gain threshold, the guess is accepted and $\lambda$ is decreased; otherwise the guess is rejected and $\lambda$ is increased.
 
@@ -52,7 +52,7 @@ The standard loss function $L_2$ calculates the loss as the square of the residu
 * **Cauchy** Strongly down-weights large outliers
 * **SoftL1** Smooth approximation of $L_1$ loss that behaves like $L_2$ for small residuals
 * **Tukey** Redescending M-estimator that completely rejects extreme outliers
-* **Welsh** Another redescending M-estimator, smoother than Tukey's in its rejection
+* **Welsch** Another redescending M-estimator, smoother than Tukey's in its rejection
 * **Fair** Less sensitive to large errors than $L_2$, but not redescending
 * **Arctan** Limits maximum loss of individual residuals
 
@@ -62,7 +62,7 @@ The damping factor $\lambda$ will oscillate between the specified limits $\lambd
 
 $$\lambda_{norm} = \frac{(\lambda_{max}-\lambda_0)(\lambda-\lambda_{min})}{(\lambda_0-\lambda_{min})(\lambda_{max}-\lambda)}$$
 
-If $\lambda_{norm}$ is 1, the initial damping factor is being used. If it is larger, it means that more damping than indicated was necessary; if it is lower, it means that damping could be decreased for faster convergence. The use of normalised factors between zero and infinity allows to track and adjust the effective size of the trust region independently of the particular quantities of the problem.
+If $\lambda_{norm}$ is 1, the initial damping factor is being used. If it is larger, it means that more damping than indicated was necessary; if it is lower, it means that damping could be decreased for faster convergence. The use of normalised factors between zero and infinity allows tracking and adjusting the effective size of the trust region independently of the particular quantities of the problem.
 
 ### Adaptive damping floor
 
@@ -76,13 +76,13 @@ The floor takes an arbitrarily small value $\epsilon_0$ during optimistic low-da
 
     R←{X}f Eval Y
 
-`Eval` is a universal oracle operator that takes a monadic objective function `f` as its left operand and a set of parameters `Y`, and returns the corresponding residuals and derivative (either a gradient vector, or a Jacobian matrix). If `f Y` returns a nested vector of more than one element, it is returned as is, otherwise the result is taken as residuals and the Jacobian matrix or gradient vector is estimated using finite differences. The optional left argument `X` sets the relative perturbation step used for the numerical estimation (defaulting to `⎕CT*÷2`).
+`Eval` is a universal oracle operator that takes a monadic objective function `f` as its left operand and a set of parameters `Y`, and returns the corresponding residuals and derivative (either a gradient vector, or a Jacobian matrix). If `f Y` returns a nested vector of more than one element, it is returned as is. Otherwise, the result is treated as a vector of residuals and the Jacobian matrix (or gradient vector) is estimated using finite differences. The optional left argument `X` sets the relative perturbation step used for the numerical estimation (defaulting to `⎕CT*÷2`).
 
 ### `Min` Operator
 
     R←{X}f Min Y
 
-`Min` is a monadic operator. It takes a left operand to return an ambivalent function which allows to minimise an objective function given an initial set of parameters. Several configuration options are available, with sensible defaults previously defined.
+`Min` is a monadic operator. It takes a left operand to return an ambivalent function which minimises an objective function given an initial set of parameters. Several configuration options are available, with sensible defaults previously defined.
 
 The left operand `f` must be an evaluation function or a configuration namespace containing an `Eval` function. The return value of `f` determines the optimisation algorithm to use.
 
@@ -92,8 +92,7 @@ The left operand `f` must be an evaluation function or a configuration namespace
 
 `Y` must be a vector. The first element of `Y`, or `⊂Y` if `1=≡Y`, contains the initial guess for the solution parameters.
 If the next element of `Y` is a scalar numeric value, it is interpreted as the initial normalised damping factor.
-Additional elements of `Y` must be configuration namespaces. The final configuration parameters are obtained
-overwriting the parameters in the namespace given as left operand with those given as right argument from right to left. Default values will be used for non-defined parameters, except for `Eval`, which must be provided either as left operand or as member of a configuration namespace.
+Additional elements of `Y` must be configuration namespaces. The final configuration parameters are obtained by overwriting the parameters in the namespace given as left operand with those given as right argument from right to left. Default values will be used for non-defined parameters, except for `Eval`, which must be provided either as left operand or as member of a configuration namespace.
 
 Configuration namespaces may define the following options:
 
@@ -107,7 +106,7 @@ Configuration namespaces may define the following options:
 * `dmax`: Maximum damping factor (default `÷⎕CT`)
 * `dmin`: Minimum damping factor (default `÷dmax`)
 * `pert`: Relative perturbation applied during finite-difference estimation of derivative (default `⎕CT*÷2`)
-* `loss`: Loss function for vector residuals: `L2` `Huber` `Cauchy` `SoftL1` `Tukey` `Welsh` `Fair` `Arctan` or dyadic function (default `L2`)
+* `loss`: Loss function for vector residuals: `L2` `Huber` `Cauchy` `SoftL1` `Tukey` `Welsch` `Fair` `Arctan` or dyadic function (default `L2`)
 * `scale`: Scale factor passed as left argument to loss function (default for 95% efficiency in robust loss functions)
 * `verbose`: If `1`, print `iter cost rel dnorm p` each iteration (default `0`)
 
@@ -126,7 +125,7 @@ The returned value `R` is a namespace including all the configuration options an
 
 * With the exception of `toli` and `tolc`, configuration parameters should generally be modified only by expert users or in case of convergence problems
 
-* The relative change metric `rel` is the minimum relative change between successive accepted solutions either in the the cost or in the solution parameters
+* The relative change metric `rel` is the minimum relative change between successive accepted solutions either in the cost or in the solution parameters
 
 * In addition to being used for the definition of default values, `⎕CT` is also the baseline for adaptive floor damping
 
@@ -160,7 +159,7 @@ It is analogous to the `M` operator but its evaluation function `f` must be an a
 
 #### Hessian approximation
 
-The monadic operators `LM` and `BFGS` take an evaluation function `f` and return ambivaluent functions to use as left operand for `Newton`.
+The monadic operators `LM` and `BFGS` take an evaluation function `f` and return ambivalent functions to use as left operand for `Newton`.
 
     c h g←{X}f LM Y
     c h g←{X}f BFGS Y
