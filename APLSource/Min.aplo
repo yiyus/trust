@@ -3,6 +3,7 @@
      n←'d',¨'ini' 'inc' 'dec' 'max' 'min'               ⍝ damping
      n←('icrg',⍨¨⊂'tol'),n                              ⍝ tolerances
      nc←'ddec' 'dmin' ⋄ ns←'scale'                      ⍝ computed defaults
+     nb←'lower' 'upper' 'margin'                        ⍝ bounds
      nr←'iter' 'cost' 'rel' 'dnorm' 'p'                 ⍝ results
      c←(                                                ⍝ default config
          toli:1000 ⋄ tolc:⎕CT ⋄ tolr:⎕CT ⋄ tolg:0.01    ⍝     tolerances: iterations cost relative gain
@@ -26,5 +27,7 @@
      _←c ⎕VSET(↑nc)(c ⎕VGET(↑nc)c.(÷dinc dmax))         ⍝ other computed defaults
      CB←⍺{⍺⍺ c.CallBack c ⎕VSET(↑nr)⍵}P⍣(c.verbose≢0)   ⍝ callback function
      EV←{0=≢⍴⊃⍵:⍵ ⋄ ⍵,c.loss L⊃⍵}c.pert(⍺∘c.Eval Eval)⊢ ⍝ evaluation function
-     c⊣c.⎕DF D(c ⎕VGET↑n)EV M CB p c.dnorm              ⍝ return namespace
+     b←c ⎕VGET(↑nb)((⌈/⍬)(⌊/⍬)⎕CT)                      ⍝ bounds default to infinity
+     _←c ⎕VSET⍣(∨/(2↑nb)∊c.⎕NL¯2)⊢(↑nb)b                ⍝ set bound fields only if bounded
+     c⊣c.⎕DF D(c ⎕VGET↑n)EV M CB p c.dnorm,b            ⍝ solve
  }

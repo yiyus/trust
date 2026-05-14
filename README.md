@@ -56,6 +56,14 @@ The standard loss function $L_2$ calculates the loss as the square of the residu
 * **Fair** Less sensitive to large errors than $L_2$, but not redescending
 * **Arctan** Limits maximum loss of individual residuals
 
+### Bounded parameters
+
+Parameter bounds can be enforced via a trust-region interior-point method based on Coleman and Li's affine-scaling approach.
+
+At each iteration, parameters are clamped to the interior of the feasible region with a small margin. A diagonal penalty matrix $\Delta H_{kk} = v_k^{-1/2}$ is added to the Hessian, where $v_k$ is the Coleman-Li distance (how far each parameter is from the bound it is heading towards):
+
+$$v_k = \begin{cases} u_k - p_k & \text{if } g_k < 0 \\ p_k - l_k & \text{if } g_k > 0 \end{cases}$$
+
 ### Normalised damping factor
 
 The damping factor $\lambda$ will oscillate between the specified limits $\lambda_{min}$ and $\lambda_{max}$, starting with an initial value $\lambda_0$. The *normalised damping factor* is calculated as:
@@ -112,6 +120,12 @@ Configuration namespaces may define the following options:
 
 Configuration namespaces may also contain an optional `Callback` function executed prior to convergence checks.
 
+The following options apply only to bounded problems (if no bounds are set, the solver runs unconstrained):
+
+* `lower`: Lower bounds for the solution parameters.
+* `upper`: Upper bounds for the solution parameters.
+* `margin`: Margin from the bounds for the interior-point clamp.
+
 The returned value `R` is a namespace including all the configuration options and the additional fields:
 
 * `iter`: Total number of iterations
@@ -143,7 +157,7 @@ Advanced users building specialised pipelines can bypass `Min` entirely and call
 
     R←X f M g Y
 
-where `f` is a monadic evaluation function, `g` is a monadic function which takes as argument an `iter cost rel dnorm p` vector and gets called before every convergence check, `Y` is a two elements vector with the initial guess of parameters and normalised damping factor, and `X` is a vector with the configuration parameters `toli tolc tolr tolg dini dinc ddec dmax dmin`.
+where `f` is a monadic evaluation function, `g` is a monadic function which takes as argument an `iter cost rel dnorm p` vector and gets called before every convergence check, `Y` is either a two elements vector with the initial guess of parameters and normalised damping factor; or a five elements vector with parameters, damping, lower bounds, upper bounds, and margin. `X` is a vector with the configuration parameters `toli tolc tolr tolg dini dinc ddec dmax dmin`.
 
 The return value of `f` will determine the algorithm to use (LM for residual vectors, BFGS for scalars, Newton if Hessian and gradient are provided). If Jacobian matrices or gradient vectors are not returned by `f`, they will be numerically estimated.
 
@@ -155,7 +169,7 @@ The return value `R` is an `iter cost rel dnorm p` vector.
 
     R←X f Newton g Y
 
-It is analogous to the `M` operator but its evaluation function `f` must be an ambivalent function that returns the value of the objective function, Hessian matrix, and gradient. The first iteration, `f` will be called monadically. In successive iterations, the last accepted parameters and result (cost, Hessian and gradient) will be given as left argument.
+It is analogous to the `M` operator but its evaluation function `f` must be an ambivalent function that returns the value of the objective function, Hessian matrix, and gradient. Optionally, it might also return updated parameters at the front. The first iteration, `f` will be called monadically. In successive iterations, the last accepted parameters, cost, Hessian and gradient will be given as left argument.
 
 #### Hessian approximation
 
@@ -169,6 +183,14 @@ Composing these operators as `f LM Newton` or `f BFGS Newton` gives a complete s
 For `LM`, `f` returns either the residuals, the residuals and the Jacobian, or the residuals, Jacobian, loss values and weights. If no Jacobian is provided, it is estimated numerically. If no loss values and weights are provided, squared residuals are used. The derived function returns the cost, the Gauss-Newton matrix $J^T W J$ as the Hessian model, and the gradient $J^T W y$.
 
 For `BFGS`, `f` returns the scalar objective. The gradient is estimated numerically. The derived function returns the cost, the BFGS approximation of the Hessian (initialised to the identity and updated each iteration from successive parameter and gradient differences), and the gradient. Updates that would violate the curvature condition $s_k^T y_k > 0$ are skipped.
+
+#### Bounded box constraints
+
+`Bounded` is a dyadic operator that wraps a Hessian-providing evaluator to enforce box constraints.
+
+    p c h g←{X}(f Bounded g)Y
+
+The left operand `f` is analogous to the same operand in `Newton`. The right operand is a three-element vector with the lower bounds, upper bounds, and interior margin. Lower and upper bounds may contain infinite entries to indicate no bound on that side. If the margin is omitted, it defaults to `⎕CT`.
 
 ## Examples
 

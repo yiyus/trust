@@ -1,21 +1,22 @@
  Newton←{ti tc tr tg d0 di dd dx dn←⍺ ⋄ p d←⍵           ⍝ universal trust-region newton solver
 
      D←((dx-d0)×dn-⍨⊢)÷(d0-dn)×dx-⊢                     ⍝ damping factor normalization (λ)
+     E←¯4↑⊂⍤⊢,⍺⍺                                        ⍝ evaluate user function
 
-     T←⍺⍺{                                              ⍝ try guess(λ)
+     T←{                                                ⍝ try guess(λ)
          r⊢←0 ⋄ 11::dx⌊⍵×di ⋄ b←1-÷1⌈d⊢←D ⍵             ⍝   bad guess if domain error
-         ∆p←-g⌹m+⍺×⍤1⊢⍵×dm←(⎕CT+b-⎕CT×b)⌈1 1⍉m          ⍝   solve (M + λD)∆p = g
-         c0←-2÷⍨∆p+.×g-∆p×⍵×dm                          ⍝   predicted error decrement
-         c1←c-⊃n←p c m g ⍺⍺⊢q←p+∆p                      ⍝   actual error decrement⌈
+         ∆p←-g⌹h+⍺×⍤1⊢⍵×dh←(⎕CT+b-⎕CT×b)⌈1 1⍉h          ⍝   solve (H + λD)∆p = g
+         c0←-2÷⍨∆p+.×g-∆p×⍵×dh                          ⍝   predicted error decrement
+         c1←c-⊃1↓n←p c h g E⊢q←p+∆p                     ⍝   actual error decrement
          r⊢←(p(-÷∘(⎕CT∘⌈)⍥(+.×⍨)⊣)q)⌊|c1÷c              ⍝   relative change metric
          (⎕CT>c0)∧⎕CT<c1:dx⌊⍵×di                        ⍝   if not changing, increase damping
          (⎕CT≤c0)∧tg≥c1÷c0:dx⌊⍵×di                      ⍝   if diverging, increase damping
-         dn⌈⍵×dd⊣p(c m g)⊢←q n                          ⍝   accept state, decrease damping
+         dn⌈⍵×dd⊣p c h g⊢←n                             ⍝   accept state, decrease damping
      }
      C←⍵⍵{                                              ⍝ convergence check(λ_prev, λ)
          _←⍺⍺(i⊢←i+1)c r d p                            ⍝   call callback
          (ti<i)∨(dx∧.=⍺ ⍵)∨(tc>c)∨(r>0)∧tr>r            ⍝   check termination criteria
      }
-     i r←0 ⋄ 0≥ti⊣⍵⍵ s←i c r d p⊣c m g←⍺⍺ p:s           ⍝ init state
+     i r←0 ⋄ 0≥ti⊣⍵⍵ s←i c r d p⊣p c h g←E p:s          ⍝ init state
      i c r d p⊣(∘.=⍨⍳≢p)T⍣C{11::dx ⋄ D⍣¯1⊢⍵}d           ⍝ main iteration loop
  }

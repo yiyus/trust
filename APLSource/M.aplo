@@ -1,5 +1,6 @@
- M←{                                   ⍝ Minimisation
-     3=≢e←⍺⍺ Eval⊃⍵:⍺ ⍺⍺ Newton ⍵⍵ ⍵   ⍝ Newton
-     0=≢⍴⊃e:⍺ ⍺⍺ BFGS Newton ⍵⍵ ⍵      ⍝ Broyden–Fletcher–Goldfarb–Shanno
-     ⍺ ⍺⍺ LM Newton ⍵⍵ ⍵               ⍝ Levenberg-Marquardt
+ M←{                                      ⍝ Minimisation
+     B←Bounded(3↑(2↓⍵),(⌈/⍬)(⌊/⍬)⎕CT)     ⍝ Coleman-Li bounds
+     3=≢e←⍺⍺ Eval⊃⍵:⍺ ⍺⍺ B Newton ⍵⍵ 2↑⍵  ⍝ Newton
+     0=≢⍴⊃e:⍺ ⍺⍺ BFGS B Newton ⍵⍵ 2↑⍵     ⍝ Broyden–Fletcher–Goldfarb–Shanno
+     ⍺ ⍺⍺ LM B Newton ⍵⍵ 2↑⍵              ⍝ Levenberg-Marquardt
  }

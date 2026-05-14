@@ -1,0 +1,8 @@
+Bounded←{                               ⍝ trust-region interior point
+    ⍺←⊢ ⋄ l u ∆←3↑⍵⍵,⎕CT
+    (l∧.≤⌈/⍬)∧u∧.≥⌊/⍬:⍺ ⍺⍺ ⍵ ⋄ ⎕DIV←1   ⍝ unbounded for infinite bounds
+    c h g←¯3↑⍺ ⍺⍺ p←(l+∆)⌈(u-∆)⌊⍵       ⍝ clamp parameters to interior
+    v←((g<0)×u-p)+(g>0)×p-l             ⍝ coleman-li distance
+    h+←(v*-÷2)×⍤¯1∘.=⍨⍳≢p               ⍝ add interior-point penalty
+    p c h g
+}

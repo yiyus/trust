@@ -215,6 +215,27 @@
          r,←1 1 CLW(R #.Rosenbrock3 #.Min 0 0).p                       ⍝ Newton converged
          r
      }
+    ⍝ Box constraints on Rosenbrock with LM. Tests the inactive case (optimum inside
+    ⍝ the box), the active case (optimum outside the box, true min is on the boundary),
+    ⍝ and an infeasible starting point.
+     t.BoundedRosenbrock←{
+         RB←#.Rosenbrock #.Min(⊂¯1.2 1)∘,
+         r←1 1 CMP(R RB(lower:¯10 ⋄ upper:10)).p                       ⍝ solution between bounds
+         r,←0.5 0.25 CLW(R RB(upper:0.5 10)).p                         ⍝ force onto known boundary
+         r,←0.5 0.25 CLW(R RB(upper:0.5 10 ⋄ margin:0)).p              ⍝ no margin
+         r,←0.4 0.16 CLW(R RB(upper:0.5 10 ⋄ margin:0.1)).p            ⍝ huge margin
+         r,←(R RB(upper:10 0.5)).((cost<0.1)∧10 0.5∧.≥p)               ⍝ limit one parameter
+         s←#.Rosenbrock #.Min(¯5 ¯5)(lower:¯1 ⋄ upper:2)               ⍝ start outside
+         r,←(R s).((p ##.CLW 1 1)∧(¯1∧.≤p)∧2∧.≥p)
+         r
+     }
+    ⍝ Box constraints with all methods
+     t.BoundedDispatch←{
+         r←0.5 0.25 CLW(R #.Rosenbrock #.Min(¯1.2 1)(upper:0.5)).p     ⍝ LM
+         r,←0.5 0.25 CLW(R #.Rosenbrock2 #.Min(¯1.2 1)(upper:0.5)).p   ⍝ BFGS
+         r,←0.5 0.25 CLW(R #.Rosenbrock3 #.Min(¯1.2 1)(upper:0.5)).p   ⍝ Newton
+         r
+     }
     ⍝ Check that algorithm finishes on termination conditions
      t.Terminate←{
          r←(R #.Rosenbrock #.Min(0 0)(toli:10)).(iter>toli)            ⍝ number of iterations
