@@ -62,7 +62,7 @@ Parameter bounds can be enforced via a trust-region interior-point method based 
 
 At each iteration, parameters are clamped to the interior of the feasible region with a small margin. A diagonal penalty matrix $\Delta H_{kk} = v_k^{-1/2}$ is added to the Hessian, where $v_k$ is the Coleman-Li distance (how far each parameter is from the bound it is heading towards):
 
-$$v_k = \begin{cases} u_k - p_k & \text{if } g_k < 0 \\ p_k - l_k & \text{if } g_k > 0 \end{cases}$$
+$$v_k = \begin{cases} u_k-p_k & \text{if } g_k<0 \\\\ p_k-l_k & \text{if } g_k>0 \end{cases}$$
 
 ### Normalised damping factor
 
