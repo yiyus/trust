@@ -173,24 +173,26 @@ It is analogous to the `M` operator but its evaluation function `f` must be an a
 
 #### Hessian approximation
 
-The monadic operators `LM` and `BFGS` take an evaluation function `f` and return ambivalent functions to use as left operand for `Newton`.
+The monadic operators `BFGS` and `LM` take an evaluation function `f` and return ambivalent functions to use as left operand for `Newton`.
 
-    c h g←{X}f LM Y
     c h g←{X}f BFGS Y
+    c h g←{X}f LM Y
 
-Composing these operators as `f LM Newton` or `f BFGS Newton` gives a complete solver.
+Composing these operators as `f BFGS Newton g` or `f LM Newton g` gives a complete solver.
+
+For `BFGS`, `f` returns either the scalar objective, or the objective and its gradient. If only the objective is returned, the gradient is estimated numerically. The derived function will return the cost, the BFGS approximation of the Hessian (initialised to the identity and updated each iteration from successive parameter and gradient differences), and the gradient. Updates that would violate the curvature condition $s_k^T y_k > 0$ are skipped.
 
 For `LM`, `f` returns either the residuals, the residuals and the Jacobian, or the residuals, Jacobian, loss values and weights. If no Jacobian is provided, it is estimated numerically. If no loss values and weights are provided, squared residuals are used. The derived function returns the cost, the Gauss-Newton matrix $J^T W J$ as the Hessian model, and the gradient $J^T W y$.
-
-For `BFGS`, `f` returns the scalar objective. The gradient is estimated numerically. The derived function returns the cost, the BFGS approximation of the Hessian (initialised to the identity and updated each iteration from successive parameter and gradient differences), and the gradient. Updates that would violate the curvature condition $s_k^T y_k > 0$ are skipped.
 
 #### Bounded box constraints
 
 `Bounded` is a dyadic operator that wraps a Hessian-providing evaluator to enforce box constraints.
 
-    p c h g←{X}(f Bounded g)Y
+    p c h g←{X}(f Bounded l u m)Y
 
-The left operand `f` is analogous to the same operand in `Newton`. The right operand is a three-element vector with the lower bounds, upper bounds, and interior margin. Lower and upper bounds may contain infinite entries to indicate no bound on that side. If the margin is omitted, it defaults to `⎕CT`.
+The left operand `f` is analogous to the same operand in `Newton`. The right operand is a two or three-element vector with the lower bounds `l`, upper bounds `u`, and optional interior margin `m`. If the margin is omitted, it defaults to `⎕CT`. Lower and upper bounds may contain infinite entries to indicate no bound on that side.
+
+Functions result of `Bounded` can also be used as a `Newton` left operands such that, if `b` is a set of boundary parameters, then `f Bounded b Newton g`, `f LM Bounded b Newton g` and `f BFGS Bounded b Newton g` give complete bounded solvers.
 
 ## Examples
 
