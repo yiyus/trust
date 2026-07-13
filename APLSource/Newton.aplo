@@ -8,7 +8,7 @@
          ∆p←-g⌹h+⍺×⍤1⊢⍵×dh←(⎕CT+b-⎕CT×b)⌈1 1⍉h          ⍝   solve (H + λD)∆p = g
          c0←-2÷⍨∆p+.×g-∆p×⍵×dh                          ⍝   predicted error decrement
          c1←c-⊃1↓n←p c h g E⊢q←p+∆p                     ⍝   actual error decrement
-         r⊢←(p(-÷∘(⎕CT∘⌈)⍥(+.×⍨)⊣)q)⌊|c1÷c              ⍝   relative change metric
+         r⊢←(p(-÷∘(⎕CT∘⌈)⍥(+.×⍨)⊣)q)⌊c1÷c               ⍝   relative change metric
          (0>c0)∨(⎕CT>c0)∧⎕CT<c1:dx⌊⍵×di                 ⍝   if not changing, increase damping
          (⎕CT≤c0)∧tg≥c1÷c0:dx⌊⍵×di                      ⍝   if diverging, increase damping
          dn⌈⍵×dd⊣p c h g⊢←n                             ⍝   accept state, decrease damping

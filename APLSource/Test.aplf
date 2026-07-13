@@ -208,6 +208,20 @@
          r
      }
 
+    ⍝ A loose cost/relative-change tolerance should still make real progress
+    ⍝ toward the known minimum, not stall almost immediately: after a single
+    ⍝ rejected step, an aggressively increased damping factor can shrink the
+    ⍝ step so much that the relative-change criterion reports convergence
+    ⍝ long before the solver is anywhere near the optimum.
+     t.RosenbrockLooseTolerance←{
+         near←{0.01>⎕←+/0.5××⍨1 1-⍵}
+         r←0.01>(R #.Rosenbrock #.Min(¯1.2 1)(tolc:0.01)).cost         ⍝ standard starting point
+         r,←0.01>(R #.Rosenbrock #.Min(2 1)(tolc:0.01)).cost           ⍝ not so close
+         r,←0.1>(R #.Rosenbrock #.Min(¯1.2 1)(tolc:0.1)).cost          ⍝ standard starting point
+         r,←0.1>(R #.Rosenbrock #.Min(2 1)(tolc:0.1)).cost             ⍝ not so close
+         r
+     }
+
     ⍝ Nonlinear least-squares problem with a genuinely indefinite true Hessian at start.
     ⍝ Requires the optimizer to handle negative curvature away from the optimum.
      t.Indefinite←{
