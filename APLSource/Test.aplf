@@ -207,6 +207,54 @@
          r,←1 2 3 CMP⍥(1e¯2∘×)(R(+.×⍨2÷⍨∘⊃#.Quadratic)#.Min 0 0 0).p   ⍝ BFGS: looser tolerance
          r
      }
+
+    ⍝ Nonlinear least-squares problem with a genuinely indefinite true Hessian at start.
+    ⍝ Requires the optimizer to handle negative curvature away from the optimum.
+     t.Indefinite←{
+         I←{x y←⍵ ⋄ ((x*2)-(y*2)-2 ⋄ x-y-1)[(2×x)(¯2×y) ⋄ 1 ¯1]}
+         _←⎕SIGNAL(0≤(¯3×5)-¯1×¯1)/11                                  ⍝ indefinite Hessian
+         r←0.5 1.5 CMP(R I #.Min 0 0).p                                ⍝ solve from indefinite start
+         r,←0.5 1.5 CMP(R I #.Min 2 1).p                               ⍝ solve from another point
+         r
+     }
+     
+    ⍝ Newton engine via Min, with analytic gradient and full Hessian for the Indefinite problem
+     Indefinite3←{
+         x y←⍵ ⋄ r1←(x*2)-(y*2)-2 ⋄ r2←x-y-1
+         f←0.5×(r1*2)+r2*2
+         g←((2×x×r1)+r2)((¯2×y×r1)-r2)
+         h←(2 2⍴(1+4×x*2)(¯1-4×x×y)(¯1-4×x×y)(1+4×y*2))+2 2⍴(2×r1)0 0(¯2×r1)
+         f h g
+     }
+     t.IndefiniteNewton←{
+         f h g←#.Indefinite3 0 0
+         _←⎕SIGNAL(0≤(h[1;1]×h[2;2])-h[1;2]×h[2;1])/11                 ⍝ indefinite Hessian
+         r←0.5 1.5 CMP(R #.Indefinite3 #.Min 0 0).p                    ⍝ close to the solution
+         r,←0.5 1.5 CMP(R #.Indefinite3 #.Min 1 2).p                   ⍝ not so close
+         r
+     }
+
+    ⍝ Verifies monotonic cost descent across various problem geometries and engines.
+    ⍝ Wraps the standard Min interface to inject a stateful callback.
+     t.Monotonic←{
+         C←⎕NS⍬                                                        ⍝ stateful namespace to track cost
+         cb←{c←1⊃⍵ ⋄ _←⎕SIGNAL(c>C.last)/11 ⋄ C.last←c}                ⍝ error if cost increases
+         M←{C.last←⌊/⍬ ⋄ n←() ⋄ n.CallBack←cb ⋄ n(⍺⍺ #.Min)⍵}          ⍝ wrapper (injects callback)
+         P←{
+            a b c d←⍵ ⋄ r5 r10←5 10*÷2 ⋄ y←(a+10×b)(r5×c-d)(×⍨b-2×c)(r10××⍨a-d)
+            y[1 10 0 0 ⋄ 0 0 r5(-r5) ⋄ 0(2×b-2×c)(-4×b-2×c)0 ⋄ (2×r10×a-d)0 0(-2×r10×a-d)]
+         }
+         B←{x y←⍵ ⋄ (1.5 2.25 2.625-x×1-y*⍳3)[(¯1+y)x ⋄ (¯1+y*2)(2×x×y) ⋄ (¯1+y*3)(3×x×y*2)]}
+         I←{x y←⍵ ⋄ ((x*2)-(y*2)-2 ⋄ x-y-1)[(2×x)(¯2×y) ⋄ 1 ¯1]}
+         r ←1 1 CLW(R #.Rosenbrock #.Min ¯1.2 1).p                     ⍝ LM engine
+         r,←1 1 CLW(R #.Rosenbrock2 M ¯1.2 1).p                        ⍝ BFGS engine
+         r,←1 1 CLW(R #.Rosenbrock3 M ¯1.2 1).p                        ⍝ Newton engine
+         r,←(4⍴0)CMP(R P M(3 ¯1 0 1)(tolc:1E¯30)).p                    ⍝ Powell: singular at optimum
+         r,←3 0.5 CMP(R B M 1 1).p                                     ⍝ Beale: singular Jt J
+         r,←0.5 1.5 CMP(R I M 0 0).p                                   ⍝ Indefinite: negative curvature
+         r
+     }
+
     ⍝ Verify that all three engines converge to the same minimum on a problem
     ⍝ where all three apply.
      t.Dispatch←{
