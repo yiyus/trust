@@ -7,7 +7,7 @@
      nr←'iter' 'cost' 'rel' 'dnorm' 'p'                 ⍝ results
      c←(                                                ⍝ default config
          toli:1000 ⋄ tolc:⎕CT ⋄ tolr:⎕CT ⋄ tolg:0.01    ⍝     tolerances: iterations cost relative gain
-         dini:0.01 ⋄ dinc:5 ⋄ dmax:÷⎕CT ⋄ loss:'L2'     ⍝     damping and loss function
+         dini:0.01 ⋄ dinc:100 ⋄ dmax:÷⎕CT ⋄ loss:'L2'   ⍝     damping and loss function
          p0:p ⋄ pert:⎕CT*÷2 ⋄ verbose:0                 ⍝     init guess, perturbation, logging
      )
      F←{1((⊂6 0⍕↑),12 ¯5∘⍕¨⍤↓)⍵} ⋄ P←{⎕←F ⍵ ⋄ ⍵}        ⍝ format and print
@@ -24,7 +24,7 @@
 
      c.CallBack←⊢ ⋄ c←c ⎕NS ⍺⍺ ⋄ c.dnorm←1⊣⍣(1=≢w)⊃⌽w   ⍝ default callback and actual config
      c.scale←c ⎕VGET⊂ns(Loss ⎕VGET ⎕C c.loss)           ⍝ set scale factor for loss function
-     _←c ⎕VSET(↑nc)(c ⎕VGET(↑nc)c.(÷dinc dmax))         ⍝ other computed defaults
+     _←c ⎕VSET(↑nc)(c ⎕VGET(↑nc)c.(÷(dinc*÷2)dmax))     ⍝ other computed defaults
      CB←⍺{⍺⍺ c.CallBack c ⎕VSET(↑nr)⍵}P⍣(c.verbose≢0)   ⍝ callback function
      EV←{0=≢⍴⊃⍵:⍵ ⋄ ⍵,c.loss L⊃⍵}c.pert(⍺∘c.Eval Eval)⊢ ⍝ evaluation function
      b←c ⎕VGET(↑nb)((⌈/⍬)(⌊/⍬)⎕CT)                      ⍝ bounds default to infinity
