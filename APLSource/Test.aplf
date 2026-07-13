@@ -108,10 +108,10 @@
      t.Powell←{
          P←{
              a b c d←⍵ ⋄ r5 r10←5 10*÷2 ⋄ y←(a+10×b)(r5×c-d)(×⍨b-2×c)(r10××⍨a-d)
-             y[1 10 0 0 ⋄ 0 0 r5(-r5) ⋄ 0(2×b-2×c)(-2×b-2×c)0 ⋄ (2×r10×a-d)0 0(-2×r10×a-d)]
+             y[1 10 0 0 ⋄ 0 0 r5(-r5) ⋄ 0(2×b-2×c)(-4×b-2×c)0 ⋄ (2×r10×a-d)0 0(-2×r10×a-d)]
          }
-         r←(4⍴0)CMP(R P #.Min(3 ¯1 0 1)(tolc:1E¯30)).p                 ⍝ standard starting point
-         r,←(4⍴0)CMP(R P #.Min(0 0 0 0)(tolc:1E¯30)).p                 ⍝ solution (convergence at zero step)
+         r←(4⍴0)CMP(R P #.Min(0 0 0 0)(tolc:1E¯30)).p                  ⍝ solution (convergence at zero step)
+         r,←(4⍴0)CMP(R P #.Min(3 ¯1 0 1)(tolc:1E¯30)).p                ⍝ standard starting point
          r,←(4⍴0)CMP(R P #.Min(1 1 1 1)(tolc:1E¯30)).p                 ⍝ far from solution
          r
      }
