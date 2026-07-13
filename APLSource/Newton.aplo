@@ -15,7 +15,7 @@
      }
      C←⍵⍵{                                              ⍝ convergence check(λ_prev, λ)
          _←⍺⍺(i⊢←i+1)c r d p                            ⍝   call callback
-         (ti<i)∨(dx∧.=⍺ ⍵)∨(tc>c)∨(r>0)∧tr>r            ⍝   check termination criteria
+         (ti<i)∨(dx∧.=⍺ ⍵)∨(tc>c)∨(i>1)∧(r≥0)∧tr>r      ⍝   check termination criteria
      }
      i r←0 ⋄ 0≥ti⊣⍵⍵ s←i c r d p⊣p c h g←E p:s          ⍝ init state
      i c r d p⊣(∘.=⍨⍳≢p)T⍣C{11::dx ⋄ D⍣¯1⊢⍵}d           ⍝ main iteration loop
