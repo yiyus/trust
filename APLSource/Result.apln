@@ -11,5 +11,5 @@
         ⍵.((tolc>cost)∨(tolr≤rel)∨1<dnorm):0
         ⍺<0.5*⍨+/×⍨⍵.(grad×⍤1⊢pscale)
     }
-    Stalled←{⍵.((tolc≤cost)∨tolr>rel)}            ⍝ bare mechanical fact, no attempt to explain why
+    Stalled←{⍵.((tolc≤cost)∧tolr>rel)}            ⍝ bare mechanical fact, no attempt to explain why
 :EndNamespace
