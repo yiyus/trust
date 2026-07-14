@@ -1,0 +1,7 @@
+:Namespace Result
+    Converged←{⍵.(tolc>cost)}                    ⍝ SUCESS
+    MaxIterations←{⍵.(toli<iter)}                ⍝ FAILED: max iterations reached
+    DampingSaturated←{⍵.(dmax≤dnorm)}            ⍝ FAILED: couldn't find an acceptable step
+    StalledByEscalation←{(Stalled ⍵)∧1<⍵.dnorm}  ⍝ FAILED: false-stall
+    Stalled←{⍵.(tolr>rel)}                       ⍝ bare mechanical fact, no attempt to explain why
+:EndNamespace

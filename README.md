@@ -149,6 +149,8 @@ The returned value `R` is a namespace including all the configuration options an
 
 * Loss functions and their respective weights, as well as their default values for the scaling parameter are defined in the namespace `Loss`
 
+* The `Result` namespace includes several functions to diagnose termination conditions
+
 ### Lower-level operators
 
 Advanced users building specialised pipelines can bypass `Min` entirely and call the core operators directly.
