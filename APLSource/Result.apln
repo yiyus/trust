@@ -7,7 +7,7 @@
     StalledByEscalation←{⍵.((tolr>rel)∧1<dnorm)}  ⍝ FAILED: false-stall
     StalledByPrecision←{⍺←gtol                    ⍝ FAILED: precision loss at low damping
         ⍵.((tolr≤rel)∨1<dnorm):0
-        ⍺<0.5*⍨+/×⍨⍵.grad
+        ⍺<0.5*⍨+/×⍨⍵.(grad×⍤1⊢pscale)
     }
     Stalled←{⍵.(tolr>rel)}                        ⍝ bare mechanical fact, no attempt to explain why
 :EndNamespace
