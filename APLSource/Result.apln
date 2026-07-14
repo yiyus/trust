@@ -4,12 +4,10 @@
     Converged←{⍵.(tolc>cost)}                     ⍝ SUCESS
     MaxIterations←{⍵.(toli<iter)}                 ⍝ FAILED: max iterations reached
     DampingSaturated←{⍵.(dmax≤dnorm)}             ⍝ FAILED: couldn't find an acceptable step
-    StalledByEscalation←{                         ⍝ FAILED: false-stall
-        ⍵.((tolc≤cost)∧(tolr>rel)∧1<dnorm)
-    }
+    Stalled←{⍵.((tolc≤cost)∧(rel≥0)∧tolr>rel)}    ⍝ FAILED: not changing, no attempt to explain why
+    StalledByEscalation←{⍵.(1<dnorm)∧Stalled ⍵}   ⍝ FAILED: false-stall
     StalledByPrecision←{⍺←gtol                    ⍝ FAILED: precision loss at low damping
-        ⍵.((tolc>cost)∨(tolr≤rel)∨1<dnorm):0
+        ⍵.(1<dnorm)∨~Stalled ⍵:0
         ⍺<0.5*⍨+/×⍨⍵.(grad×⍤1⊢pscale)
     }
-    Stalled←{⍵.((tolc≤cost)∧tolr>rel)}            ⍝ bare mechanical fact, no attempt to explain why
-:EndNamespace
+:EndNamespace⌈
