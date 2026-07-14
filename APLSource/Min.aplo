@@ -1,4 +1,4 @@
- Min←{⍺←⊢ ⋄ p←⊃w←⊆⍵ ⋄ ⍝0::⎕SIGNAL ⎕EN                    ⍝ pass signals
+ Min←{⍺←⊢ ⋄ p←⊃w←⊆⍵ ⋄ 0::⎕SIGNAL ⎕EN                    ⍝ pass signals
 
      n←'d',¨'ini' 'inc' 'dec' 'max' 'min'               ⍝ damping
      n←('icrg',⍨¨⊂'tol'),n                              ⍝ tolerances and data scaling
