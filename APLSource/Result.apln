@@ -10,4 +10,4 @@
         ⍵.(1<dnorm)∨~Stalled ⍵:0
         ⍺<0.5*⍨+/×⍨⍵.(grad×⍤1⊢pscale)
     }
-:EndNamespace⌈
+:EndNamespace
