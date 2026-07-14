@@ -137,6 +137,8 @@ The returned value `R` is a namespace including all the configuration options an
 * `p`: Final optimised solution parameters
 * `grad`: Final gradient
 
+The `Result` namespace includes several functions to diagnose termination conditions: `Converged`, `MaxIterations`, `DampingSaturated`, `StalledByEscalation`, `StalledByPrecision` and `Stalled`.
+
 #### Notes
 
 * With the exception of `toli` and `tolc`, configuration parameters should generally be modified only by expert users or in case of convergence problems
@@ -148,8 +150,6 @@ The returned value `R` is a namespace including all the configuration options an
 * The perturbation to estimate the Jacobian `pert` and the scaling factor for loss functions `scale` can be either scalar values, or vectors of the same length of respectively the parameters and the residuals
 
 * Loss functions and their respective weights, as well as their default values for the scaling parameter are defined in the namespace `Loss`
-
-* The `Result` namespace includes several functions to diagnose termination conditions
 
 ### Lower-level operators
 
