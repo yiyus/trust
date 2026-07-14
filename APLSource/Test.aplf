@@ -1,4 +1,4 @@
- Test←{0::⎕EM ⎕SIGNAL ⎕EN
+ Test←{⍝0::⎕EM ⎕SIGNAL ⎕EN
      t←()
     ⍝ Tests ability to navigate sharp, narrow valleys and handle situations where the Jacobian
     ⍝ may lead to a locally rank-deficient J^T J matrix (eg. zero diagonal elements), requiring
@@ -266,6 +266,13 @@
          r,←(4⍴0)CMP(R P M(3 ¯1 0 1)(tolc:1E¯30)).p                    ⍝ Powell: singular at optimum
          r,←3 0.5 CMP(R B M 1 1).p                                     ⍝ Beale: singular Jt J
          r,←0.5 1.5 CMP(R I M 0 0).p                                   ⍝ Indefinite: negative curvature
+         r
+     }
+
+    ⍝ Apply scaling to parameters whose natural magnitudes differ.
+     t.PScale←{
+         S←{x y←⍵ ⋄ r←(x-3)(⍺×y+2) ⋄ j←2 2⍴1 0 0 ⍺ ⋄ r j}
+         r←3 ¯2 CMP(R 1E8∘S #.Min(0 0)(pscale:1 1E¯8)).p
          r
      }
 

@@ -1,14 +1,14 @@
- Min←{⍺←⊢ ⋄ p←⊃w←⊆⍵ ⋄ 0::⎕SIGNAL ⎕EN                    ⍝ pass signals
+ Min←{⍺←⊢ ⋄ p←⊃w←⊆⍵ ⋄ ⍝0::⎕SIGNAL ⎕EN                    ⍝ pass signals
 
      n←'d',¨'ini' 'inc' 'dec' 'max' 'min'               ⍝ damping
-     n←('icrg',⍨¨⊂'tol'),n                              ⍝ tolerances
+     n←('icrg',⍨¨⊂'tol'),n                              ⍝ tolerances and data scaling
      nc←'ddec' 'dmin' ⋄ ns←'scale'                      ⍝ computed defaults
      nb←'lower' 'upper' 'margin'                        ⍝ bounds
      nr←'iter' 'cost' 'rel' 'dnorm' 'p'                 ⍝ results
      c←(                                                ⍝ default config
          toli:1000 ⋄ tolc:⎕CT ⋄ tolr:⎕CT ⋄ tolg:0.01    ⍝     tolerances: iterations cost relative gain
          dini:0.01 ⋄ dinc:100 ⋄ dmax:÷⎕CT ⋄ loss:'L2'   ⍝     damping and loss function
-         p0:p ⋄ pert:⎕CT*÷2 ⋄ verbose:0                 ⍝     init guess, perturbation, logging
+         pscale:1 ⋄ p0:p ⋄ pert:⎕CT*÷2 ⋄ verbose:0      ⍝     scale, init guess, perturbation, logging
      )
      F←{1((⊂6 0⍕↑),12 ¯5∘⍕¨⍤↓)⍵} ⋄ P←{⎕←F ⍵ ⋄ ⍵}        ⍝ format and print
      D←{⍕'sp',¨':',¨(⊂2 5)⌷F ⍵}                         ⍝ display form
@@ -26,8 +26,12 @@
      c.scale←c ⎕VGET⊂ns(Loss ⎕VGET ⎕C c.loss)           ⍝ set scale factor for loss function
      _←c ⎕VSET(↑nc)(c ⎕VGET(↑nc)c.(÷(dinc*÷2)dmax))     ⍝ other computed defaults
      CB←⍺{⍺⍺ c.CallBack c ⎕VSET(↑nr)⍵}P⍣(c.verbose≢0)   ⍝ callback function
+     PS←{⍵⍵∘(×⍤1)¨@(⎕IO+1)⍣((1<|≡g)∧2=≢g)⊢g←⍺⍺ ⍵⍵×⍵}    ⍝ scale parameters
+     c.Eval←c.Eval PS c.pscale                          ⍝ eval function with scaled parameters
      EV←{0=≢⍴⊃⍵:⍵ ⋄ ⍵,c.loss L⊃⍵}c.pert(⍺∘c.Eval Eval)⊢ ⍝ evaluation function
      b←c ⎕VGET(↑nb)((⌈/⍬)(⌊/⍬)⎕CT)                      ⍝ bounds default to infinity
-     _←c ⎕VSET⍣(∨/(2↑nb)∊c.⎕NL¯2)⊢(↑nb)b                ⍝ set bound fields only if bounded
-     c⊣c.⎕DF D(c ⎕VGET↑n)EV M CB p c.dnorm,b            ⍝ solve
+     b←÷∘c.pscale¨@((bd←nb∊c.⎕NL¯2)⍨)b                  ⍝ defined bounds in scaled units
+     _←c ⎕VSET⍣(∨/bd)⊢(↑nb)b                            ⍝ set bound fields only if bounded
+     _←(c ⎕VGET↑n)EV M CB(p÷c.pscale)c.dnorm,b          ⍝ solve
+     c.p×←c.pscale ⋄ c⊣c.⎕DF D c ⎕VGET↑nr               ⍝ unscale and format
  }

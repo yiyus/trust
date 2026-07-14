@@ -116,6 +116,7 @@ Configuration namespaces may define the following options:
 * `pert`: Relative perturbation applied during finite-difference estimation of derivative (default `⎕CT*÷2`)
 * `loss`: Loss function for vector residuals: `L2` `Huber` `Cauchy` `SoftL1` `Tukey` `Welsch` `Fair` `Arctan` or dyadic function (default `L2`)
 * `scale`: Scale factor passed as left argument to loss function (default for 95% efficiency in robust loss functions)
+* `pscale`: Parameters scale factor (default 1)
 * `verbose`: If `1`, print `iter cost rel dnorm p` each iteration (default `0`)
 
 Configuration namespaces may also contain an optional `Callback` function executed prior to convergence checks.
