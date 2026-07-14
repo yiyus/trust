@@ -312,6 +312,28 @@
          r,←(R #.Rosenbrock #.Min(0 0)(dmax:0.5)).(dnorm>dmax)         ⍝ maximum damping
          r
      }
+
+    ⍝ Check Result's termination-diagnosis functions
+     t.Result←{
+         IC←{                                                          ⍝ linear system, cond(A)=⍺ exactly
+             theta←○÷6 ⋄ c←2○theta ⋄ s←1○theta
+             a←2 2⍴(⍺×c),(-⍺×s),s,c ⋄ xtrue←2 3
+             ((a+.×⍵)-a+.×xtrue)a
+         }
+         ICBFGS←{r j←⍺ IC ⍵ ⋄ (0.5×+/r×r)((⍉j)+.×r)}
+         ICNewton←{r j←⍺ IC ⍵ ⋄ h←(⍉j)+.×j ⋄ (0.5×+/r×r)h((⍉j)+.×r)}
+         conv←R #.Rosenbrock #.Min 1.5 1.5                             ⍝ genuine convergence
+         esc←R(1E4∘ICBFGS)#.Min(2⍴0)(toli:200)                         ⍝ BFGS: damping escalates
+         prec←R(1E7∘ICNewton)#.Min(2⍴0)(toli:200)                      ⍝ trust-exact: precision loss
+         r←#.Result.(Converged∧~⍤Stalled)conv
+         r,←#.Result.(~⍤StalledByEscalation∧~⍤StalledByPrecision)conv
+         r,←#.Result.(StalledByEscalation∧~⍤StalledByPrecision)esc
+         r,←#.Result.(StalledByPrecision∧~⍤StalledByEscalation)prec
+         r,←#.Result.MaxIterations R #.Rosenbrock #.Min(0 0)(toli:10)
+         r,←#.Result.Stalled R #.Rosenbrock #.Min(0 0)(tolc:0)
+         r,←#.Result.DampingSaturated R #.Rosenbrock #.Min(0 0)(dmax:0.5)
+         r
+     }
      ⍺←0.000001 ⋄ tol←⍺ ⋄ CMP←{tol>|⍺-⍵} ⋄ CLW←{tol>×⍨⍺-⍵}             ⍝ comparison and lower prec comparison
      R←{⎕←(10↑''),⍵.((6 0⍕iter),(12 ¯5⍕cost),p) ⋄ ⍵}                   ⍝ report
      TRY←{⎕←⍵ ⋄ 0∊⍺⍎⍵,'⍬':('TEST FAILED: ',⍵)⎕SIGNAL 8 ⋄ _←0}          ⍝ execute test and check result
