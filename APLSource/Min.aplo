@@ -11,7 +11,7 @@
          pscale:1 ⋄ p0:p ⋄ pert:⎕CT*÷2 ⋄ verbose:0      ⍝     scale, init guess, perturbation, logging
      )
      F←{1((⊂6 0⍕↑),12 ¯5∘⍕¨⍤↓)⍵} ⋄ P←{⎕←F ⍵ ⋄ ⍵}        ⍝ format and print
-     D←{⍕'sp',¨':',¨(⊂2 5)⌷F ⍵}                         ⍝ display form
+     D←{⍕'sp',¨':',¨(⊂2 5)⌷F ⍵ ⎕VGET↑nr}                ⍝ display form
      A←(2÷⍨1⊥⊢⌷⍨∘⊂⍋⌷⍨∘⊂∘⌈2÷⍨0 1+≢){1@(0∘=)⍺⍺|⍵-⍺⍺ ⍵}    ⍝ median absolute deviation
      L←{0=c.⎕NC'sigma':∇ ⍵⊣c.sigma←(A ⍵)÷0.6745         ⍝ loss function (needs stddev estimation)
          3=⎕NC'⍺⍺':c.(sigma×⎕VGET⊂ns 1)⍺⍺ ⍵             ⍝     user defined
@@ -33,5 +33,5 @@
      b←÷∘c.pscale¨@((bd←nb∊c.⎕NL¯2)⍨)b                  ⍝ defined bounds in scaled units
      _←c ⎕VSET⍣(∨/bd)⊢(↑nb)b                            ⍝ set bound fields only if bounded
      _←(c ⎕VGET↑n)EV M CB(p÷c.pscale)c.dnorm,b          ⍝ solve
-     c.p×←c.pscale ⋄ c⊣c.⎕DF D c ⎕VGET↑nr               ⍝ unscale and format
+     c.p×←c.pscale ⋄ c.grad×⍤1←c.pscale ⋄ c⊣c.⎕DF D c   ⍝ unscale and format
  }
