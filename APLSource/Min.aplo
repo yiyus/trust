@@ -4,7 +4,7 @@
      n←('icrg',⍨¨⊂'tol'),n                              ⍝ tolerances and data scaling
      nc←'ddec' 'dmin' ⋄ ns←'scale'                      ⍝ computed defaults
      nb←'lower' 'upper' 'margin'                        ⍝ bounds
-     nr←'iter' 'cost' 'rel' 'dnorm' 'p'                 ⍝ results
+     nr←'iter' 'cost' 'rel' 'dnorm' 'grad' 'p'          ⍝ results
      c←(                                                ⍝ default config
          toli:1000 ⋄ tolc:⎕CT ⋄ tolr:⎕CT ⋄ tolg:0.01    ⍝     tolerances: iterations cost relative gain
          dini:0.01 ⋄ dinc:100 ⋄ dmax:÷⎕CT ⋄ loss:'L2'   ⍝     damping and loss function

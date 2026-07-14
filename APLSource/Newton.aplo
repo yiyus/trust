@@ -14,9 +14,9 @@
          dn⌈⍵×dd⊣p c h g⊢←n                             ⍝   accept state, decrease damping
      }
      C←⍵⍵{                                              ⍝ convergence check(λ_prev, λ)
-         _←⍺⍺(i⊢←i+1)c r d p                            ⍝   call callback
+         _←⍺⍺(i⊢←i+1)c r d g p                          ⍝   call callback
          (ti<i)∨(dx∧.=⍺ ⍵)∨(tc>c)∨(r≥0)∧tr>r            ⍝   check termination criteria
      }
-     i r←0 ⋄ 0≥ti⊣⍵⍵ s←i c r d p⊣p c h g←E p:s          ⍝ init state
-     i c r d p⊣(∘.=⍨⍳≢p)T⍣C{11::dx ⋄ D⍣¯1⊢⍵}d           ⍝ main iteration loop
+     i r←0 ⋄ 0≥ti⊣⍵⍵ s←i c r d g p⊣p c h g←E p:s        ⍝ init state
+     i c r d g p⊣(∘.=⍨⍳≢p)T⍣C{11::dx ⋄ D⍣¯1⊢⍵}d         ⍝ main iteration loop
  }

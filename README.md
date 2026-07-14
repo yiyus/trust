@@ -135,6 +135,7 @@ The returned value `R` is a namespace including all the configuration options an
 * `dnorm`: Final normalised damping factor
 * `p0`: Initial guess of solution parameters
 * `p`: Final optimised solution parameters
+* `grad`: Final gradient
 
 #### Notes
 
@@ -162,7 +163,7 @@ where `f` is a monadic evaluation function, `g` is a monadic function which take
 
 The return value of `f` will determine the algorithm to use (LM for residual vectors, BFGS for scalars, Newton if Hessian and gradient are provided). If Jacobian matrices or gradient vectors are not returned by `f`, they will be numerically estimated.
 
-The return value `R` is an `iter cost rel dnorm p` vector.
+The return value `R` is an `iter cost rel dnorm grad p` vector.
 
 #### Trust-region Newton solver
 
