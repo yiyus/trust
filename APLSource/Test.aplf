@@ -322,13 +322,18 @@
          }
          ICBFGS←{r j←⍺ IC ⍵ ⋄ (0.5×+/r×r)((⍉j)+.×r)}
          ICNewton←{r j←⍺ IC ⍵ ⋄ h←(⍉j)+.×j ⋄ (0.5×+/r×r)h((⍉j)+.×r)}
+         Scaling←{x y←⍵ ⋄ r←(x-3)(⍺×y+2) ⋄ j←2 2⍴1 0 0 ⍺ ⋄ r j}
          conv←R #.Rosenbrock #.Min 1.5 1.5                             ⍝ genuine convergence
-         esc←R(1E4∘ICBFGS)#.Min(2⍴0)(toli:200)                         ⍝ BFGS: damping escalates
-         prec←R(1E7∘ICNewton)#.Min(2⍴0)(toli:200)                      ⍝ trust-exact: precision loss
+         esc←R(1E4∘ICBFGS)#.Min(0 0)(toli:200)                         ⍝ BFGS: damping escalates
+         prec←R(1E7∘ICNewton)#.Min(0 0)(toli:200)                      ⍝ trust-exact: precision loss
+         sc←R(1E6∘Scaling)#.Min 0 0                                    ⍝ converged despite stall-like signature
+         sat←R #.Rosenbrock #.Min(0 0)(dmax:0.5)                       ⍝ damping saturated, rel at ¯1 sentinel
          r←#.Result.(Converged∧~⍤Stalled)conv
          r,←#.Result.(~⍤StalledByEscalation∧~⍤StalledByPrecision)conv
          r,←#.Result.(StalledByEscalation∧~⍤StalledByPrecision)esc
          r,←#.Result.(StalledByPrecision∧~⍤StalledByEscalation)prec
+         r,←#.Result.(Converged∧~⍤Stalled∧~⍤StalledByPrecision)sc
+         r,←#.Result.(DampingSaturated∧~⍤Stalled)sat
          r,←#.Result.MaxIterations R #.Rosenbrock #.Min(0 0)(toli:10)
          r,←#.Result.Stalled R #.Rosenbrock #.Min(0 0)(tolc:0)
          r,←#.Result.DampingSaturated R #.Rosenbrock #.Min(0 0)(dmax:0.5)
